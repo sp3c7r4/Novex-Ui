@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "CopilotKit MCP": {
+      "url": "https://mcp.copilotkit.ai/sse"
+    }
+  }
+}

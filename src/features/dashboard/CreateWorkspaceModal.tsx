@@ -108,7 +108,7 @@ export function CreateWorkspaceModal({
     <>
       {/* Main multi-step dialog */}
       <Dialog open={open && step !== "connecting"} onOpenChange={resetAndClose}>
-        <DialogContent className="sm:max-w-[480px] gap-0 p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[600px] gap-0 p-0 overflow-hidden">
           {/* Step indicator */}
           <div className="flex items-center gap-1 border-b border-border/40 px-6 pt-6 pb-4">
             {STEPS.slice(0, 2).map((s, i) => (
@@ -138,7 +138,7 @@ export function CreateWorkspaceModal({
             ))}
           </div>
 
-          <div className="px-6 py-5">
+          <div className="overflow-hidden px-6 py-5">
             <AnimatePresence mode="wait">
               {step === "info" && (
                 <motion.div
@@ -147,6 +147,7 @@ export function CreateWorkspaceModal({
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -16 }}
                   transition={{ duration: 0.2 }}
+                  className="min-w-0"
                 >
                   <DialogHeader className="mb-5">
                     <DialogTitle className="text-base">
@@ -210,6 +211,7 @@ export function CreateWorkspaceModal({
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -16 }}
                   transition={{ duration: 0.2 }}
+                  className="min-w-0 overflow-hidden"
                 >
                   <DialogHeader className="mb-5">
                     <DialogTitle className="text-base">

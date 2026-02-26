@@ -45,7 +45,7 @@ export function RepoSelector({ selectedRepo, onSelect }: RepoSelectorProps) {
   );
 
   return (
-    <Command className="rounded-lg border border-border/50">
+    <Command className="w-full overflow-hidden rounded-lg border border-border/50">
       <CommandInput placeholder="Search repositories…" />
       <CommandList className="max-h-[260px]">
         <CommandEmpty className="py-8 text-[13px]">
@@ -60,8 +60,8 @@ export function RepoSelector({ selectedRepo, onSelect }: RepoSelectorProps) {
               className="flex items-center gap-3 py-2.5"
             >
               <GitBranch className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
+              <div className="min-w-0 flex-1 overflow-hidden">
+                <div className="flex items-center gap-2 overflow-hidden">
                   <span className="truncate text-[13px] font-medium">
                     {repo.full_name}
                   </span>
