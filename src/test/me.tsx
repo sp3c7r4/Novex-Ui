@@ -4,7 +4,6 @@ import { Markdown } from "@copilotkit/react-ui";
 import { SparklesIcon } from "lucide-react";
 
 import { CopilotKit } from "@copilotkit/react-core";
-import { CopilotSidebar } from "@copilotkit/react-ui";
 import "@copilotkit/react-ui/styles.css";
 
 const CustomAssistantMessage = (props: AssistantMessageProps) => {

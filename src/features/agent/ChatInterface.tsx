@@ -170,7 +170,9 @@ export function ChatInterface({ repoName, onAISuggest }: ChatInterfaceProps) {
                   }`}
                 >
                   <p className="text-[13px] leading-relaxed whitespace-pre-wrap">
-                    {msg.content}
+                    {typeof msg.content === "string"
+                      ? msg.content
+                      : JSON.stringify(msg.content)}
                   </p>
                   <p className="mt-1 text-[10px] opacity-40">
                     {msg.timestamp.toLocaleTimeString([], {

@@ -3,11 +3,9 @@ import {
   convertToExcalidrawElements,
   CaptureUpdateAction,
 } from "@excalidraw/excalidraw";
-import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw";
-import type {
-  ExcalidrawElement,
-  NonDeletedExcalidrawElement,
-} from "@excalidraw/excalidraw/types/element/types";
+import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
+import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
+import type { ExcalidrawElementSkeleton } from "@excalidraw/excalidraw/data/transform";
 import {
   EXCALIDRAW_SERVER_URL,
   EXCALIDRAW_WS_URL,
@@ -96,7 +94,7 @@ export interface CanvasActivity {
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
 /** Strip server-only metadata so Excalidraw doesn't choke. */
-function cleanElement(el: ServerElement): Record<string, any> {
+function cleanElement(el: ServerElement): ExcalidrawElementSkeleton {
   const {
     createdAt,
     updatedAt,
@@ -106,17 +104,17 @@ function cleanElement(el: ServerElement): Record<string, any> {
     syncTimestamp,
     ...clean
   } = el;
-  return clean;
+  return clean as unknown as ExcalidrawElementSkeleton;
 }
 
 /** Fix broken binding refs (missing targets). */
 function fixBindings(
-  elements: Record<string, any>[],
-): Record<string, any>[] {
-  const ids = new Set(elements.map((e) => e.id!));
+  elements: ExcalidrawElementSkeleton[],
+): ExcalidrawElementSkeleton[] {
+  const ids = new Set(elements.map((e) => (e as any).id!));
 
   return elements.map((el) => {
-    const fixed = { ...el };
+    const fixed = { ...el } as any;
 
     if (Array.isArray(fixed.boundElements)) {
       fixed.boundElements = fixed.boundElements.filter(
@@ -143,7 +141,7 @@ export function useExcalidrawSync() {
     useState<ExcalidrawImperativeAPI | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("disconnected");
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimer = useRef<ReturnType<typeof setTimeout>>();
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   // Bumped to force the WS useEffect to re-run on reconnect
   const [wsEpoch, setWsEpoch] = useState(0);
 
@@ -264,11 +262,11 @@ export function useExcalidrawSync() {
                 captureUpdate: CaptureUpdateAction.IMMEDIATELY,
               });
               const label =
-                cleanedNew.text ||
+                (cleanedNew as any).text ||
                 (cleanedNew as any).label?.text ||
                 "";
               addActivity(
-                `Drawing ${cleanedNew.type}${label ? ` "${label}"` : ""}`,
+                `Drawing ${(cleanedNew as any).type}${label ? ` "${label}"` : ""}`,
                 "create",
               );
             } catch (convErr) {
@@ -297,10 +295,10 @@ export function useExcalidrawSync() {
               captureUpdate: CaptureUpdateAction.IMMEDIATELY,
             });
             const updLabel =
-              cleanedUpdated.text ||
+              (cleanedUpdated as any).text ||
               (cleanedUpdated as any).label?.text ||
               data.element.id;
-            addActivity(`Updating ${cleanedUpdated.type} "${updLabel}"`, "update");
+            addActivity(`Updating ${(cleanedUpdated as any).type} "${updLabel}"`, "update");
             break;
           }
 

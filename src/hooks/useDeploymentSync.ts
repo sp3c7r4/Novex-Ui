@@ -13,7 +13,7 @@ export interface DeploymentLog {
 
 export function useDeploymentSync(repoFullName: string | null) {
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimer = useRef<ReturnType<typeof setTimeout>>();
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const seqRef = useRef(0);
 
   const { auth } = useAppStore();
