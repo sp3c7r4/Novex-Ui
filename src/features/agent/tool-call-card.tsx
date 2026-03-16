@@ -22,7 +22,7 @@ function badgeColor(name: string): string {
   if (name.startsWith("excalidraw"))
     return "bg-violet-500/15 text-violet-400 border-violet-500/20";
   return "bg-primary/10 text-primary border-primary/20";
-}
+};
 
 interface ToolCallCardProps {
   name: string;
