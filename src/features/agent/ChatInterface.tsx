@@ -1,23 +1,38 @@
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Send, Bot, User } from "lucide-react";
+import { useCopilotAction, useCopilotChatHeadless_c } from "@copilotkit/react-core";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type { Message as CPMessage } from "@copilotkit/shared"
+import { useAgent } from "@copilotkit/react-core/v2"; 
 
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: Date;
+export function AgentInfo() {
+  const { agent } = useAgent({
+    agentId: "bloom-agent",
+  }); 
+  return (
+    <div>
+      <p>Agent ID: {agent.agentId}</p>
+      <p>Thread ID: {agent.threadId}</p>
+      <p>Status: {agent.isRunning ? "Running" : "Idle"}</p>
+      <p>Messages: {agent.messages.length}</p>
+    </div>
+  );
 }
 
+type Message = CPMessage & {
+  timestamp: Date;
+}
 interface ChatInterfaceProps {
   repoName: string;
-  onAISuggest: (suggestion: string) => void;
+  onAISuggest?: (suggestion: string) => void;
 }
 
 export function ChatInterface({ repoName, onAISuggest }: ChatInterfaceProps) {
-  const [messages, setMessages] = useState<Message[]>([
+  const { messages, sendMessage, isLoading } = useCopilotChatHeadless_c(); 
+  console.log("Messages: ", messages)
+  const [localMessages, setLocalMessages] = useState<Message[]>([
     {
       id: "welcome",
       role: "assistant",
@@ -26,14 +41,60 @@ export function ChatInterface({ repoName, onAISuggest }: ChatInterfaceProps) {
     },
   ]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // ── CopilotKit Action ────────────────────────────────────────────────
+  // Registers a frontend tool the AI agent can call to render diagrams.
+  // This is safe to call even when the runtime isn't connected yet —
+  // it just registers the tool definition without making network calls.
+  useCopilotAction({
+    name: "renderDiagram",
+    description:
+      "Render an architecture diagram, flowchart, or dependency graph on the whiteboard",
+    parameters: [
+      {
+        name: "diagramType",
+        type: "string",
+        description:
+          "The type of diagram (e.g. architecture, dependency, flow, sequence)",
+        required: true,
+      },
+      {
+        name: "description",
+        type: "string",
+        description: "A description of what the diagram should show",
+        required: true,
+      },
+    ],
+    handler: ({ description }) => {
+      onAISuggest?.(description);
+      return `Diagram rendered on the whiteboard: ${description}`;
+    },
+    render: ({ status, args }) => (
+      <div className="my-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2">
+        <div className="flex items-center gap-2 text-xs font-medium text-primary">
+          <div
+            className={`h-1.5 w-1.5 rounded-full ${
+              status === "complete"
+                ? "bg-green-400"
+                : "animate-pulse bg-amber-400"
+            }`}
+          />
+          {status === "complete"
+            ? `Diagram rendered: ${args?.diagramType ?? "diagram"}`
+            : `Rendering ${args?.diagramType ?? "diagram"}…`}
+        </div>
+      </div>
+    ),
+  });
+
+  // Auto-scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
 
@@ -43,23 +104,18 @@ export function ChatInterface({ repoName, onAISuggest }: ChatInterfaceProps) {
       content: trimmed,
       timestamp: new Date(),
     };
-    setMessages((prev) => [...prev, userMsg]);
+    setLocalMessages((prev: Message[]) => [...prev, { ...userMsg, timestamp: new Date() }]);
     setInput("");
-    setIsLoading(true);
 
-    // Mock AI reply
-    setTimeout(() => {
-      const aiMsg: Message = {
-        id: `a-${Date.now()}`,
-        role: "assistant",
-        content:
-          "Analyzing the repository structure. I'll render the diagram on the whiteboard now.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMsg]);
-      setIsLoading(false);
-      onAISuggest(trimmed);
-    }, 1200);
+    // TODO: Replace this mock reply with CopilotKit's sendMessage()
+    // once the CopilotKit Runtime backend is configured.
+    // See: https://docs.copilotkit.ai/guides/self-hosting
+    console.log("Calling sendMessage")
+    await sendMessage({
+      role: "user",
+      content: trimmed,
+      id: `a-${Date.now()}`,
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -77,52 +133,61 @@ export function ChatInterface({ repoName, onAISuggest }: ChatInterfaceProps) {
           <Bot className="h-3.5 w-3.5 text-primary" />
         </div>
         <span className="text-[13px] font-medium">AI Agent</span>
+        {isLoading && (
+          <div className="ml-auto flex items-center gap-1.5 text-[10px] text-muted-foreground">
+            <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
+            Thinking
+          </div>
+        )}
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
         <div className="space-y-4">
-          {messages.map((msg) => (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}
-              className={`flex gap-2.5 ${
-                msg.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              {msg.role === "assistant" && (
-                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <Bot className="h-3.5 w-3.5 text-primary" />
-                </div>
-              )}
-
-              <div
-                className={`max-w-[85%] rounded-xl px-3.5 py-2.5 ${
-                  msg.role === "user"
-                    ? "bg-foreground text-background"
-                    : "bg-muted/60"
+          <AnimatePresence initial={false}>
+            {localMessages.map((msg) => (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className={`flex gap-2.5 ${
+                  msg.role === "user" ? "justify-end" : "justify-start"
                 }`}
               >
-                <p className="text-[13px] leading-relaxed whitespace-pre-wrap">
-                  {msg.content}
-                </p>
-                <p className="mt-1 text-[10px] opacity-40">
-                  {msg.timestamp.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
+                {msg.role === "assistant" && (
+                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <Bot className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                )}
 
-              {msg.role === "user" && (
-                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted">
-                  <User className="h-3.5 w-3.5 text-muted-foreground" />
+                <div
+                  className={`max-w-[85%] rounded-xl px-3.5 py-2.5 ${
+                    msg.role === "user"
+                      ? "bg-foreground text-background"
+                      : "bg-muted/60"
+                  }`}
+                >
+                  <p className="text-[13px] leading-relaxed whitespace-pre-wrap">
+                    {msg.content}
+                  </p>
+                  <p className="mt-1 text-[10px] opacity-40">
+                    {msg.timestamp.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
                 </div>
-              )}
-            </motion.div>
-          ))}
+
+                {msg.role === "user" && (
+                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted">
+                    <User className="h-3.5 w-3.5 text-muted-foreground" />
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
 
           {/* Typing indicator */}
           {isLoading && (
@@ -168,6 +233,8 @@ export function ChatInterface({ repoName, onAISuggest }: ChatInterfaceProps) {
           </Button>
         </div>
       </div>
+
+      <AgentInfo/>
     </div>
   );
 }

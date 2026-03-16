@@ -47,7 +47,7 @@ export function RepoSelector({ selectedRepo, onSelect }: RepoSelectorProps) {
   return (
     <Command className="w-full overflow-hidden rounded-lg border border-border/50">
       <CommandInput placeholder="Search repositories…" />
-      <CommandList className="max-h-[260px]">
+      <CommandList className="max-h-[260px] no-scrollbar">
         <CommandEmpty className="py-8 text-[13px]">
           {loading ? "Loading…" : "No repositories found."}
         </CommandEmpty>

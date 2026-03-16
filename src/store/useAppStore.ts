@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { User, Workspace, AppEvent } from "@/types";
+import type { User, Workspace, DisplayEvent } from "@/types";
 
 interface Auth {
   token: string | null;
@@ -12,7 +12,7 @@ interface AppState {
   workspaces: Workspace[];
   selectedWorkspace: Workspace | null;
   isInitializing: boolean;
-  eventLogs: AppEvent[];
+  eventLogs: DisplayEvent[];
 
   // Auth actions
   setToken: (token: string | null) => void;
@@ -23,12 +23,13 @@ interface AppState {
   // Workspace actions
   setWorkspaces: (workspaces: Workspace[]) => void;
   addWorkspace: (workspace: Workspace) => void;
+  updateWorkspace: (id: string, patch: Partial<Pick<Workspace, "name" | "description">>) => void;
   removeWorkspace: (id: string) => void;
   setSelectedWorkspace: (ws: Workspace | null) => void;
 
   // Event actions
   setIsInitializing: (v: boolean) => void;
-  addEvent: (event: AppEvent) => void;
+  addEvent: (event: DisplayEvent) => void;
   clearEvents: () => void;
 }
 
@@ -63,9 +64,16 @@ export const useAppStore = create<AppState>()(
       addWorkspace: (workspace) =>
         set((s) => ({ workspaces: [...s.workspaces, workspace] })),
 
+      updateWorkspace: (id, patch) =>
+        set((s) => ({
+          workspaces: s.workspaces.map((w) =>
+            (w.id === id || w._id === id) ? { ...w, ...patch } : w
+          ),
+        })),
+
       removeWorkspace: (id) =>
         set((s) => ({
-          workspaces: s.workspaces.filter((w) => w.id !== id),
+          workspaces: s.workspaces.filter((w) => w.id !== id && w._id !== id),
         })),
 
       setSelectedWorkspace: (selectedWorkspace) => set({ selectedWorkspace }),

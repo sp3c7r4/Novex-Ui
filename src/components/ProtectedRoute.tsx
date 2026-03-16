@@ -35,7 +35,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
           "/auth/verify"
         );
         if (!cancelled) {
-          setAuth(auth.token!, data.user);
+        setAuth(auth.token!, data.user);
           setVerifyStatus("ok");
         }
       } catch {

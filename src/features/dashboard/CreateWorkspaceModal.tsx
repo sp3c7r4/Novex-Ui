@@ -260,8 +260,12 @@ export function CreateWorkspaceModal({
       </Dialog>
 
       {/* Connection / initialization modal */}
-      {step === "connecting" && (
-        <ConnectionModal open onComplete={handleConnectionComplete} />
+      {step === "connecting" && selectedRepo && (
+        <ConnectionModal
+          open
+          repoFullName={selectedRepo.full_name}
+          onComplete={handleConnectionComplete}
+        />
       )}
     </>
   );
