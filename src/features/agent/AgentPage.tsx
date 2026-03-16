@@ -109,7 +109,7 @@ function ChatPanel({
   });
 
   const chatInstructions = repoMarkdown
-    ? `You are Bloom, an AI architecture assistant for the repository "${repoFullName}".
+    ? `You are Novex, an AI architecture assistant for the repository "${repoFullName}".
 
 Here is the full technical analysis of this codebase:
 
@@ -324,7 +324,7 @@ export function AgentPage() {
           <CopilotKit
             key={threadId}
             runtimeUrl={COPILOT_RUNTIME_URL}
-            agent="bloom-agent"
+            agent="novex-agent"
             threadId={threadId}
             showDevConsole={false}
           >

@@ -2,10 +2,10 @@ export const BACKEND_URL =
   import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
 export const WS_URL =
-  import.meta.env.VITE_WS_URL || "ws://localhost:3000";
+  import.meta.env.VITE_WS_URL || "wss://novex.sparkintelligence.info";
 
 export const COPILOT_RUNTIME_URL =
-  import.meta.env.VITE_COPILOT_RUNTIME_URL || "http://localhost:3000/chat";
+  import.meta.env.VITE_COPILOT_RUNTIME_URL || "https://novex.sparkintelligence.info/chat";
 
 export const COPILOT_PUBLIC_API_KEY =
   import.meta.env.VITE_COPILOT_PUBLIC_API_KEY || "";

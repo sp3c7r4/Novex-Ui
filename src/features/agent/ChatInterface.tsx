@@ -9,7 +9,7 @@ import { useAgent } from "@copilotkit/react-core/v2";
 
 export function AgentInfo() {
   const { agent } = useAgent({
-    agentId: "bloom-agent",
+    agentId: "novex-agent",
   }); 
   return (
     <div>
